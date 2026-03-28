@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wisdom Elementary — Academic Timetable</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f2eb; --border:#ddd8cc; --text:#1a1a1a; --muted:#888;
+  --header-bg:#1c2b3a; --accent:#c8a96e;
+  --nm:#2e7d52; --nm-l:#e8f5ee;
+  --ap:#7b3f9e; --ap-l:#f4ecfb;
+  --pd:#c0622a; --pd-l:#fdf0e8;
+  --ms:#1565a8; --ms-l:#e8f2fc;
+  --jc:#b5191e; --jc-l:#fdeaea;
+  --sr:#2c6e49; --sr-l:#e6f4ec;
+  --tm:#7a5c00; --tm-l:#fdf6e3;
+  --sp:#4a4080; --sp-l:#eeecf8;
+  --tiffin-bg:#fff8ee; --tiffin-fg:#b8860b; --tiffin-border:#f0e6c8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--text);padding:28px 20px 60px;}
+
+/* ── HEADER ── */
+.site-header{text-align:center;padding:26px 20px 22px;background:var(--header-bg);border-radius:16px;color:white;margin-bottom:28px;}
+.site-header h1{font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent);margin-bottom:4px;}
+.site-header p{font-size:0.82rem;opacity:0.6;letter-spacing:0.6px;}
+
+/* ── MAIN TOGGLE ── */
+.view-toggle{display:flex;justify-content:center;margin-bottom:28px;}
+.toggle-track{display:flex;background:#e8e3d8;border-radius:99px;padding:4px;}
+.toggle-btn{padding:9px 32px;border-radius:99px;border:none;font-family:'Source Sans 3',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;background:transparent;color:var(--muted);transition:all 0.25s;}
+.toggle-btn.active{background:var(--header-bg);color:white;box-shadow:0 2px 10px rgba(0,0,0,0.15);}
+
+/* ── VIEWS ── */
+.view{display:none;} .view.active{display:block;}
+
+/* ── SUB TABS ── */
+.sub-tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:24px;}
+.sub-tab{padding:7px 18px;border-radius:99px;border:2px solid var(--border);background:white;font-family:'Source Sans 3',sans-serif;font-weight:600;font-size:0.85rem;cursor:pointer;transition:all 0.18s;color:var(--muted);}
+.sub-tab:hover{border-color:var(--accent);color:var(--text);}
+.sub-tab.active{color:white;border-color:transparent;}
+.sub-tab.cls-active{background:var(--header-bg);}
+.sub-tab[data-t="NM"].active{background:var(--nm);}
+.sub-tab[data-t="AP"].active{background:var(--ap);}
+.sub-tab[data-t="PD"].active{background:var(--pd);}
+.sub-tab[data-t="MS"].active{background:var(--ms);}
+.sub-tab[data-t="JC"].active{background:var(--jc);}
+.sub-tab[data-t="SR"].active{background:var(--sr);}
+.sub-tab[data-t="TM"].active{background:var(--tm);}
+.sub-tab[data-t="SP"].active{background:var(--sp);}
+
+/* ── TEACHER NAME TOGGLE BAR ── */
+.toggle-bar{display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-bottom:14px;padding:0 4px;}
+.toggle-bar-label{font-size:0.82rem;font-weight:600;color:var(--muted);}
+.sw{position:relative;display:inline-block;width:46px;height:25px;flex-shrink:0;}
+.sw input{opacity:0;width:0;height:0;}
+.sw-slider{position:absolute;inset:0;background:#ccc;border-radius:25px;cursor:pointer;transition:0.25s;}
+.sw-slider:before{content:"";position:absolute;height:19px;width:19px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.25);}
+input:checked+.sw-slider{background:var(--header-bg);}
+input:checked+.sw-slider:before{transform:translateX(21px);}
+/* Hide teacher names when toggled off */
+body.hide-tnames .teacher-label{display:none;}
+
+/* ── SECTION CARDS ── */
+.section-card{display:none;} .section-card.active{display:block;}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border-radius:12px;color:white;margin-bottom:18px;flex-wrap:wrap;}
+.card-header-left{display:flex;align-items:center;gap:14px;}
+.card-initial{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;flex-shrink:0;}
+.card-header h2{font-family:'Playfair Display',serif;font-size:1.35rem;}
+.card-header p{font-size:0.78rem;opacity:0.8;margin-top:2px;}
+.hdr-NM{background:var(--nm);} .hdr-AP{background:var(--ap);} .hdr-PD{background:var(--pd);}
+.hdr-MS{background:var(--ms);} .hdr-JC{background:var(--jc);} .hdr-SR{background:var(--sr);}
+.hdr-TM{background:var(--tm);} .hdr-SP{background:var(--sp);} .hdr-CLS{background:var(--header-bg);}
+
+/* ── DOWNLOAD BTN ── */
+.dl-btn{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;border:2px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;font-family:'Source Sans 3',sans-serif;font-weight:600;font-size:0.82rem;cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.dl-btn:hover{background:rgba(255,255,255,0.3);border-color:rgba(255,255,255,0.7);}
+.dl-btn svg{width:15px;height:15px;fill:white;}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+table{width:100%;border-collapse:collapse;min-width:620px;background:white;}
+thead th{padding:11px 12px;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:white;text-align:center;white-space:nowrap;}
+thead th:first-child{text-align:left;width:105px;}
+thead.th-NM th{background:var(--nm);} thead.th-AP th{background:var(--ap);}
+thead.th-PD th{background:var(--pd);} thead.th-MS th{background:var(--ms);}
+thead.th-JC th{background:var(--jc);} thead.th-SR th{background:var(--sr);}
+thead.th-TM th{background:var(--tm);} thead.th-SP th{background:var(--sp);}
+thead.th-CLS th{background:var(--header-bg);}
+
+/* Tiffin header column */
+thead th.th-tiffin{background:var(--tiffin-bg)!important;color:var(--tiffin-fg);font-size:0.65rem;width:36px;padding:6px 4px;letter-spacing:0;}
+
+tbody tr{border-bottom:1px solid #f0ede6;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#fafaf7;}
+tbody td{padding:9px 10px;text-align:center;vertical-align:middle;}
+tbody td:first-child{text-align:left;font-weight:600;font-size:0.8rem;color:var(--muted);background:#faf9f5;border-right:1px solid var(--border);padding-left:14px;white-space:nowrap;}
+
+/* Tiffin body column */
+td.tiffin-col{
+  background:var(--tiffin-bg)!important;
+  border-left:2px dashed var(--tiffin-border);
+  border-right:2px dashed var(--tiffin-border);
+  width:34px; min-width:34px; padding:4px 0;
+  vertical-align:middle;
+}
+td.tiffin-col .tiffin-inner{
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  transform:rotate(180deg);
+  font-size:0.62rem;
+  color:var(--tiffin-fg);
+  font-style:italic;
+  font-weight:600;
+  white-space:nowrap;
+  letter-spacing:0.5px;
+  padding:6px 0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:auto;
+  gap:3px;
+}
+
+/* ── CELLS ── */
+.cell{display:inline-flex;flex-direction:column;align-items:center;padding:5px 8px;border-radius:7px;font-size:0.76rem;min-width:82px;gap:2px;}
+.cell-subj{font-weight:600;line-height:1.2;}
+.cell-meta{font-size:0.65rem;opacity:0.7;font-weight:400;}
+.cell-NM{background:var(--nm-l);color:var(--nm);} .cell-AP{background:var(--ap-l);color:var(--ap);}
+.cell-PD{background:var(--pd-l);color:var(--pd);} .cell-MS{background:var(--ms-l);color:var(--ms);}
+.cell-JC{background:var(--jc-l);color:var(--jc);} .cell-SR{background:var(--sr-l);color:var(--sr);}
+.cell-TM{background:var(--tm-l);color:var(--tm);} .cell-SP{background:var(--sp-l);color:var(--sp);}
+.cell-free{color:#ccc;font-size:0.72rem;}
+
+/* ── SHARED TAG ── */
+.shared-tag{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:0.58rem;font-weight:700;letter-spacing:0.3px;
+  padding:2px 6px;border-radius:4px;margin-top:3px;
+  background:rgba(255,255,255,0.55);
+  border:1px solid currentColor;
+  opacity:0.85;
+  line-height:1.2;
+  white-space:nowrap;
+}
+.shared-tag::before{content:"⇌ ";}
+
+
+/* ── PERIOD COUNT ── */
+.period-count{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;font-size:0.76rem;color:var(--muted);}
+.period-count span{background:white;border:1px solid var(--border);border-radius:6px;padding:3px 9px;}
+.period-count strong{color:var(--text);}
+
+/* ── PRINT ── */
+.print-header{display:none;text-align:center;margin-bottom:14px;}
+.print-header h2{font-size:1.3rem;font-weight:700;}
+.print-header p{font-size:0.8rem;color:#555;}
+.print-header .print-sub{font-size:0.85rem;font-weight:600;margin-top:4px;}
+
+@media print{
+  @page{size:A4 landscape;margin:10mm 10mm;}
+  html,body{margin:0;padding:0;background:white;}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .site-header,.view-toggle,.sub-tabs,.period-count,.dl-btn,.no-print,.toggle-bar{display:none!important;}
+  .view,.section-card{display:block!important;}
+  .section-card:not(.active){display:none!important;}
+  td.tiffin-col, thead th.th-tiffin{display:none!important;}
+  .tbl-wrap{border:none!important;box-shadow:none!important;overflow:visible!important;}
+  table{min-width:unset!important;width:100%!important;table-layout:fixed!important;border-collapse:collapse;}
+  .print-header{display:block!important;margin-bottom:10px;text-align:center;}
+  .print-header h2{font-size:1.3rem;}
+  .print-header p{font-size:0.85rem;}
+  .card-header{color:black!important;background:none!important;border-bottom:2px solid #333;border-radius:0;padding:6px 0;margin-bottom:10px;}
+  .card-initial{display:none!important;}
+  .card-header h2{font-size:1.1rem;color:black!important;}
+  .card-header p{color:#444!important;font-size:0.8rem;}
+  thead th{-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:0.75rem;padding:7px 6px;}
+  thead.th-CLS th{background:var(--header-bg)!important;color:white!important;}
+  thead.th-NM th{background:var(--nm)!important;color:white!important;}
+  thead.th-AP th{background:var(--ap)!important;color:white!important;}
+  thead.th-PD th{background:var(--pd)!important;color:white!important;}
+  thead.th-MS th{background:var(--ms)!important;color:white!important;}
+  thead.th-JC th{background:var(--jc)!important;color:white!important;}
+  thead.th-SR th{background:var(--sr)!important;color:white!important;}
+  thead.th-TM th{background:var(--tm)!important;color:white!important;}
+  thead.th-SP th{background:var(--sp)!important;color:white!important;}
+  tbody tr{border-bottom:1px solid #ddd;height:auto!important;}
+  tbody td{padding:8px 6px!important;font-size:0.75rem;height:auto!important;vertical-align:middle;}
+  tbody td:first-child{background:#f5f5f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:0.75rem;padding-left:10px!important;white-space:nowrap;font-weight:600;}
+  .cell{min-width:unset!important;width:100%!important;padding:5px 6px!important;font-size:0.72rem!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:block!important;border-radius:5px;}
+  .cell-subj{font-size:0.72rem!important;display:block;line-height:1.3;font-weight:600;}
+  .cell-meta{font-size:0.62rem!important;display:block;opacity:0.8;}
+  .cell-NM{background:var(--nm-l)!important;color:var(--nm)!important;}
+  .cell-AP{background:var(--ap-l)!important;color:var(--ap)!important;}
+  .cell-PD{background:var(--pd-l)!important;color:var(--pd)!important;}
+  .cell-MS{background:var(--ms-l)!important;color:var(--ms)!important;}
+  .cell-JC{background:var(--jc-l)!important;color:var(--jc)!important;}
+  .cell-SR{background:var(--sr-l)!important;color:var(--sr)!important;}
+  .cell-TM{background:var(--tm-l)!important;color:var(--tm)!important;}
+  .cell-SP{background:var(--sp-l)!important;color:var(--sp)!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="site-header">
+  <h1>Wisdom Elementary Public School</h1>
+  <p>NISHIGANJ, COOCHBEHAR, WEST BENGAL · 736157 · ACADEMIC TIMETABLE</p>
+</div>
+
+<!-- MAIN SLIDER TOGGLE -->
+<div class="view-toggle">
+  <div class="toggle-track">
+    <button class="toggle-btn active" onclick="switchView('class')">📚 Class-Wise</button>
+    <button class="toggle-btn" onclick="switchView('teacher')">👩‍🏫 Teacher-Wise</button>
+  </div>
+</div>
+
+<!-- CLASS VIEW -->
+<div class="view active" id="view-class">
+  <div class="sub-tabs" id="class-tabs"></div>
+  <div class="toggle-bar no-print">
+    <span class="toggle-bar-label">Show Teacher Names</span>
+    <label class="sw">
+      <input type="checkbox" id="tnToggle" checked onchange="document.body.classList.toggle('hide-tnames',!this.checked)">
+      <span class="sw-slider"></span>
+    </label>
+  </div>
+  <div id="class-sections"></div>
+</div>
+
+<!-- TEACHER VIEW -->
+<div class="view" id="view-teacher">
+  <div class="sub-tabs" id="teacher-tabs"></div>
+  <div id="teacher-sections"></div>
+</div>
+
+<script>
+/* ═══ DATA ═══════════════════════════════════════════════ */
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+const CLASS_LABELS = {
+  "Balvatika1_PG":"Balvatika 1 & P.G.",
+  "Balvatika2":"Balvatika 2",
+  "Balvatika3":"Balvatika 3",
+  "Class1":"Class 1",
+  "Class2":"Class 2",
+  "Class3":"Class 3",
+  "Class4":"Class 4",
+  "Class6_7":"Class 6 + 7",
+};
+
+const CLASS_SHORT = {
+  "Balvatika1_PG":"BV1/PG","Balvatika2":"BV2","Balvatika3":"BV3",
+  "Class1":"Cls 1","Class2":"Cls 2","Class3":"Cls 3",
+  "Class4":"Cls 4","Class6_7":"Cls 6+7",
+};
+
+const TEACHER_INFO = {
+  NM:{name:"N.M.", subjects:"LKG Class Teacher · Rhymes, Drawing, Numeracy, Literacy"},
+  AP:{name:"A.P.", subjects:"UKG Class Teacher · Hindi, Bengali, Writing Readiness"},
+  PD:{name:"P.D.", subjects:"PG+Nursery Class Teacher · Aa-Mori Banglabhasha, Drawing"},
+  MS:{name:"M.S.", subjects:"Hindi · Hindi Grammar · Phonics · Karate · Yoga"},
+  JC:{name:"J.C.", subjects:"English · English Grammar · GK & Conversation"},
+  SR:{name:"S.R.", subjects:"Mathematics · Science · Mental Math"},
+  TM:{name:"T.M.", subjects:"SST · EVS · GK & Conversation"},
+  SP:{name:"S.P.", subjects:"Bengali · Computer · Kriti · Yoga"},
+};
+
+// Classes that have 4 periods (lower classes)
+const FOUR_PERIOD = ["Balvatika1_PG","Balvatika2","Balvatika3","Class1","Class2"];
+
+const timetable = {
+  "Balvatika1_PG":{
+    Monday:   {1:["Literacy Skillbook","NM"],   2:["Aa-Mori Banglabhasha","AP"], 3:["Drawing","PD"],             4:["Numeracy Skillbook","NM"]},
+    Tuesday:  {1:["Rhymes & Audio Visuals","NM"],2:["Aa-Mori Banglabhasha","AP"],3:["Drawing","PD"],             4:["Numeracy Workbook","NM"]},
+    Wednesday:{1:["Numeracy Skillbook","NM"],   2:["Hindi","AP"],               3:["Drawing","PD"],             4:["Literacy Skillbook","NM"]},
+    Thursday: {1:["Numeracy Workbook","NM"],    2:["Hindi","AP"],               3:["Drawing","PD"],             4:["Literacy Workbook","NM"]},
+    Friday:   {1:["Craft","NM"],               2:["General Awareness","AP"],   3:["Rhymes","PD"],              4:["Aa-Mori Banglabhasha","NM"]},
+    Saturday: {1:["General Awareness","NM"],   2:["Fundamental Stories","AP"], 3:["Rhymes","PD"],              4:["Hindi","NM"]},
+  },
+  "Balvatika2":{
+    Monday:   {1:["Literacy Skillbook","AP"],  2:["Numeracy Skillbook","PD"],  3:["Drawing","NM"],             4:["Hindi","MS"]},
+    Tuesday:  {1:["Literacy Workbook","AP"],   2:["Numeracy Workbook","PD"],   3:["Drawing","NM"],             4:["Hindi","MS"]},
+    Wednesday:{1:["Literacy Skillbook","AP"],  2:["Aa-Mori Banglabhasha","PD"],3:["Drawing","NM"],             4:["Hindi","MS"]},
+    Thursday: {1:["Stories & Rhymes","AP"],    2:["Rhymes & Audio Visuals","PD"],3:["Drawing","NM"],           4:["Hindi","PD"]},
+    Friday:   {1:["Phonic & Rhymes","MS"],     2:["Aa-Mori Banglabhasha","PD"],3:["General Awareness","NM"],   4:["Literacy Skillbook","AP"]},
+    Saturday: {1:["General Awareness","AP"],   2:["Aa-Mori Banglabhasha","PD"],3:["Phonic & Stories","NM"],    4:["Numeracy Skillbook","AP"]},
+  },
+  "Balvatika3":{
+    Monday:   {1:["Aa-Mori Banglabhasha","PD"],2:["Numeracy Skillbook","NM"],  3:["Hindi","MS"],               4:["General Awareness","PD"]},
+    Tuesday:  {1:["Aa-Mori Banglabhasha","PD"],2:["Numeracy Workbook","NM"],   3:["Hindi","MS"],               4:["Stories & Rhymes","PD"]},
+    Wednesday:{1:["Aa-Mori Banglabhasha","PD"],2:["Mathematics","NM"],         3:["Hindi","AP"],               4:["Rhymes","PD"]},
+    Thursday: {1:["Literacy Workbook","PD"],   2:["English","NM"],             3:["Science","AP"],             4:["Phonic & Stories","AP"]},
+    Friday:   {1:["Yoga or Karate","MS"],      2:["English","NM"],             3:["Science","AP"],             4:["Literacy Workbook","PD"]},
+    Saturday: {1:["Drawing or Craft","PD"],    2:["English","NM"],             3:["Science","AP"],             4:["Aa-Mori Banglabhasha","PD"]},
+  },
+  "Class1":{
+    Monday:   {1:["Hindi","MS"],         2:["Science","TM"],        3:["Bengali","AP"],           4:["English","JC"]},
+    Tuesday:  {1:["Hindi","MS"],         2:["Science","TM"],        3:["Bengali","AP"],           4:["English","JC"]},
+    Wednesday:{1:["Hindi Grammar","MS"], 2:["Science","TM"],        3:["GK & Conversation","JC"], 4:["Mathematics","SR"]},
+    Thursday: {1:["Hindi Grammar","MS"], 2:["Mathematics","SR"],    3:["Computer","SP"],          4:["English Grammar","JC"]},
+    Friday:   {1:["Bengali Grammar","PD"],2:["Yoga or Karate","MS"],3:["Drawing or Craft","MS"],  4:["Computer","JC"]},
+    Saturday: {1:["Mental Math","JC"],   2:["Computer","SP"],       3:["English","JC"],           4:["Phonic","MS"]},
+  },
+  "Class2":{
+    Monday:   {1:["English","JC"],       2:["Mathematics","SR"],    3:["Bengali","SP"],           4:["Science","SR"]},
+    Tuesday:  {1:["English","JC"],       2:["Mathematics","SR"],    3:["Bengali","SP"],           4:["Science","SR"]},
+    Wednesday:{1:["English Grammar","JC"],2:["Mathematics","SR"],   3:["Hindi","MS"],             4:["SST","TM"]},
+    Thursday: {1:["Science","SR"],       2:["Computer","SP"],       3:["Hindi","MS"],             4:["SST","TM"]},
+    Friday:   {1:["SST","TM"],           2:["Drawing or Craft","MS"],3:["Yoga or Karate","MS"],   4:["Computer","SP"]},
+    Saturday: {1:["Phonic","MS"],        2:["Hindi Grammar","MS"],  3:["GK & Conversation","TM"], 4:["Bengali Grammar","SP"]},
+  },
+  "Class3":{
+    Monday:   {1:["Mathematics","SR"],   2:["Hindi","MS"],          3:["SST","TM"],               4:["Bengali","SP"]},
+    Tuesday:  {1:["Mathematics","SR"],   2:["Hindi","MS"],          3:["SST","TM"],               4:["Bengali","SP"]},
+    Wednesday:{1:["Mathematics","SR"],   2:["English Grammar","JC"],3:["EVS","TM"],               4:["Computer","SP"]},
+    Thursday: {1:["SST","TM"],           2:["Hindi Grammar","MS"],  3:["Science","SR"],           4:["Computer","SP"]},
+    Friday:   {1:["Science","SR"],       2:["English","JC"],        3:["EVS","TM"],               4:["Yoga or Karate","MS"]},
+    Saturday: {1:["Science","SR"],       2:["English","JC"],        3:["Phonic & Conversation","MS"],4:["EVS","TM"]},
+  },
+  "Class4":{
+    Monday:   {1:["SST","TM"],           2:["English","JC"],        3:["Mathematics","SR"],       4:["GK","TM"],         5:["Hindi","MS"]},
+    Tuesday:  {1:["SST","TM"],           2:["Computer","SP"],       3:["Mathematics","SR"],       4:["Bengali Grammar","TM"],5:["Hindi","MS"]},
+    Wednesday:{1:["SST","TM"],           2:["Computer","SP"],       3:["Mathematics","SR"],       4:["Conversation","JC"],5:["Hindi Grammar","MS"]},
+    Thursday: {1:["Bengali","SP"],       2:["English Grammar","JC"],3:["EVS","JC"],               4:["Science","SR"],    5:["Drawing & Craft","MS"]},
+    Friday:   {1:["EVS","JC"],           2:["Science","SR"],        3:["English","JC"],           4:["Yoga or Karate","MS"],5:["Computer Practical","SP"]},
+    Saturday: {1:["Bengali","SP"],       2:["Science","SR"],        3:["Mental Math","SR"],       4:["EVS","JC"]},
+  },
+  "Class6_7":{
+    Monday:   {1:["Computer","SP"],      2:["Kriti","SP"],          3:["English","JC"],           4:["Bengali","AP"],    5:["Science","SR"]},
+    Tuesday:  {1:["Computer","SP"],      2:["English","JC"],        3:["English Grammar","JC"],   4:["Bengali","AP"],    5:["Mathematics","SR"]},
+    Wednesday:{1:["Kriti","SP"],         2:["Hindi","MS"],          3:["Computer","SP"],          4:["Bengali","AP"],    5:["Mathematics","SR"]},
+    Thursday: {1:["English","JC"],       2:["SST","TM"],            3:["SST","TM"],               4:["Hindi","MS"],      5:["Mental Math","SR"]},
+    Friday:   {1:["Bengali Grammar","AP"],2:["SST","TM"],           3:["Science","SR"],           4:["Yoga or Karate","MS"],5:["Hindi Grammar","MS"]},
+    Saturday: {1:["SST","TM"],           2:["GK & Conversation","TM"],3:["Mental Math","SP"],     4:["Science","SR"]},
+  },
+};
+
+/* ═══ SHARED PERIODS ═════════════════════════════════════
+   Slots where MS and SP share the class.
+   Key format: "CLASS|DAY|PERIOD"
+   Value: the OTHER teacher (the one not in timetable data).
+═══════════════════════════════════════════════════════════ */
+const SHARED = {
+  "Balvatika3|Friday|1":    "SP",   // Yoga or Karate — MS in data, SP shares
+  "Class1|Friday|2":        "SP",   // Yoga or Karate — MS in data, SP shares
+  "Class1|Friday|3":        "SP",   // Drawing or Craft — MS in data, SP shares
+  "Class2|Friday|3":        "SP",   // Yoga or Karate — MS in data, SP shares
+  "Class2|Friday|4":        "MS",   // Computer — SP in data, MS shares
+  "Class3|Friday|4":        "SP",   // Yoga or Karate — MS in data, SP shares
+  "Class4|Friday|4":        "SP",   // Yoga or Karate — MS in data, SP shares
+  "Class6_7|Friday|4":      "SP",   // Yoga or Karate — MS in data, SP shares
+};
+
+
+function switchView(v){
+  document.querySelectorAll('.toggle-btn').forEach((b,i)=>
+    b.classList.toggle('active',(v==='class'&&i===0)||(v==='teacher'&&i===1))
+  );
+  document.getElementById('view-class').classList.toggle('active', v==='class');
+  document.getElementById('view-teacher').classList.toggle('active', v==='teacher');
+}
+
+function downloadPDF(id, title){
+  const allS = document.querySelectorAll('.section-card');
+  const allV = document.querySelectorAll('.view');
+  allS.forEach(s => s.dataset.wa = s.classList.contains('active'));
+  allS.forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  allV.forEach(v => v.classList.add('active'));
+  document.title = title;
+  window.print();
+  allS.forEach(s => s.dataset.wa==='true' ? s.classList.add('active') : s.classList.remove('active'));
+  const cv = document.querySelector('.toggle-btn.active').textContent.includes('Class') ? 'class' : 'teacher';
+  allV.forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+cv).classList.add('active');
+  document.title = 'Wisdom Elementary — Academic Timetable';
+}
+
+// Make a subject cell (isTeacher=true → show teacher name; isTeacher=false → show class name)
+// sharedWith: optional teacher code for shared periods (e.g. "SP" or "MS")
+function mkCell(subj, colorKey, labelText, isTeacher, sharedWith){
+  const labelClass = 'cell-meta' + (isTeacher ? ' teacher-label' : '');
+  const sharedTag = sharedWith
+    ? `<span class="shared-tag">Shared with ${TEACHER_INFO[sharedWith]?.name || sharedWith}</span>`
+    : '';
+  return `<div class="cell cell-${colorKey}"><span class="cell-subj">${subj}</span><span class="${labelClass}">${labelText}</span>${sharedTag}</div>`;
+}
+
+function freeCell(){ return `<span class="cell-free">—</span>`; }
+
+// Tiffin column TD
+const TIFFIN_TD = `<td class="tiffin-col"><div class="tiffin-inner">🍱 Tiffin</div></td>`;
+
+/* ═══ BUILD CLASS VIEW ════════════════════════════════════
+   ONE row per day. Tiffin is a column between P3 and P4.
+   Layout: Day | P1 | P2 | P3 | [Tiffin] | P4 | (P5)
+══════════════════════════════════════════════════════════ */
+function buildClassView(){
+  const tabsEl = document.getElementById('class-tabs');
+  const secEl  = document.getElementById('class-sections');
+
+  Object.keys(timetable).forEach((cls, i) => {
+    // ── Tab button
+    const btn = document.createElement('button');
+    btn.className = 'sub-tab' + (i===0 ? ' active cls-active' : '');
+    btn.textContent = CLASS_LABELS[cls];
+    btn.onclick = () => {
+      document.querySelectorAll('#class-tabs .sub-tab').forEach(b => b.classList.remove('active','cls-active'));
+      document.querySelectorAll('#class-sections .section-card').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active','cls-active');
+      document.getElementById('cls-'+cls).classList.add('active');
+    };
+    tabsEl.appendChild(btn);
+
+    const isFour = FOUR_PERIOD.includes(cls);
+    // Saturday sometimes has only 4 periods even for 5-period classes — handled per-day below
+
+    const pId    = 'cls-'+cls;
+    const pTitle = `Academic Routine — ${CLASS_LABELS[cls]} — Wisdom Elementary`;
+
+    const sec = document.createElement('div');
+    sec.className = 'section-card' + (i===0 ? ' active' : '');
+    sec.id = pId;
+
+    sec.innerHTML = `
+      <div class="print-header">
+        <h2>Wisdom Elementary Public School</h2>
+        <p>Nishiganj, Coochbehar, West Bengal, 736157</p>
+        <p class="print-sub">Academic Routine for ${CLASS_LABELS[cls]}</p>
+      </div>
+      <div class="card-header hdr-CLS">
+        <div class="card-header-left">
+          <div class="card-initial">${CLASS_LABELS[cls].slice(0,2)}</div>
+          <div>
+            <h2>${CLASS_LABELS[cls]}</h2>
+            <p>${isFour ? '4 periods daily' : '5 periods (Mon–Fri) · 4 periods Saturday'} &nbsp;·&nbsp; 🍱 Tiffin after Period 3</p>
+          </div>
+        </div>
+        <button class="dl-btn no-print" onclick="downloadPDF('${pId}','${pTitle}')">
+          <svg viewBox="0 0 24 24"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v-2H5v2z"/></svg>
+          Download PDF
+        </button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead class="th-CLS">
+            <tr>
+              <th>Day</th>
+              <th>Period 1</th>
+              <th>Period 2</th>
+              <th>Period 3</th>
+              <th class="th-tiffin">🍱</th>
+              <th>Period 4</th>
+              ${!isFour ? '<th>Period 5</th>' : ''}
+            </tr>
+          </thead>
+          <tbody id="tb-cls-${cls}"></tbody>
+        </table>
+      </div>
+      <div class="period-count no-print">
+        <span>📋 <strong>${isFour?'4':'5'} periods/day</strong></span>
+        <span>🗓️ Total: <strong>${isFour ? 24 : 29} slots/week</strong></span>
+        <span>🍱 Tiffin after Period 3</span>
+      </div>`;
+
+    secEl.appendChild(sec);
+
+    // ── Fill tbody — ONE row per day
+    const tb = document.getElementById('tb-cls-'+cls);
+    DAYS.forEach(day => {
+      const dayData = timetable[cls][day] || {};
+      const tr = document.createElement('tr');
+
+      let cells = `<td><strong>${day}</strong></td>`;
+
+      // P1, P2, P3
+      [1,2,3].forEach(p => {
+        const s = dayData[p];
+        const shKey = `${cls}|${day}|${p}`;
+        const shWith = SHARED[shKey] || null;
+        cells += s
+          ? `<td>${mkCell(s[0], s[1], TEACHER_INFO[s[1]]?.name || s[1], true, shWith)}</td>`
+          : `<td>${freeCell()}</td>`;
+      });
+
+      // Tiffin separator column
+      cells += TIFFIN_TD;
+
+      // P4
+      const s4 = dayData[4];
+      const shKey4 = `${cls}|${day}|4`;
+      const shWith4 = SHARED[shKey4] || null;
+      cells += s4
+        ? `<td>${mkCell(s4[0], s4[1], TEACHER_INFO[s4[1]]?.name || s4[1], true, shWith4)}</td>`
+        : `<td>${freeCell()}</td>`;
+
+      // P5 (upper classes only)
+      if(!isFour){
+        const s5 = dayData[5];
+        const shKey5 = `${cls}|${day}|5`;
+        const shWith5 = SHARED[shKey5] || null;
+        cells += s5
+          ? `<td>${mkCell(s5[0], s5[1], TEACHER_INFO[s5[1]]?.name || s5[1], true, shWith5)}</td>`
+          : `<td>${freeCell()}</td>`;
+      }
+
+      tr.innerHTML = cells;
+      tb.appendChild(tr);
+    });
+  });
+}
+
+/* ═══ TOTAL SCHOOL SLOTS ══════════════════════════════════
+   Computed from timetable data — sum of every filled period
+   across all classes and days.
+══════════════════════════════════════════════════════════ */
+function getTotalSchoolSlots(){
+  let t = 0;
+  for(const cls of Object.values(timetable))
+    for(const day of Object.values(cls))
+      t += Object.keys(day).length;
+  return t;
+}
+const TOTAL_SCHOOL_SLOTS = getTotalSchoolSlots();
+
+/* ═══ BUILD TEACHER VIEW ══════════════════════════════════ */
+function buildTeacherView(){
+  const tabsEl = document.getElementById('teacher-tabs');
+  const secEl  = document.getElementById('teacher-sections');
+
+  Object.keys(TEACHER_INFO).forEach((t, i) => {
+    // Build this teacher's schedule (own slots + shared slots)
+    const sched = {};
+    let total = 0;
+    for(const day of DAYS){
+      sched[day] = {};
+      for(const [cls, days] of Object.entries(timetable)){
+        if(!days[day]) continue;
+        for(const [p, [subj, teacher]] of Object.entries(days[day])){
+          if(teacher === t){ sched[day][p] = {cls, subj, isShared:false}; total++; }
+          // Also include slots where this teacher is the SHARED partner
+          const shKey = `${cls}|${day}|${p}`;
+          if(SHARED[shKey] === t){ sched[day][p] = {cls, subj, isShared:true}; }
+        }
+      }
+    }
+
+    const maxP = Math.max(...DAYS.map(day => {
+      const ps = Object.keys(sched[day]).map(Number);
+      return ps.length ? Math.max(...ps) : 0;
+    }), 4);
+    const periods    = Array.from({length:maxP}, (_,j) => j+1);
+    const dayCounts  = DAYS.map(d => Object.values(sched[d]).filter(s => !s.isShared).length);
+
+    // ── Tab
+    const btn = document.createElement('button');
+    btn.className = `sub-tab${i===0?' active':''}`;
+    btn.dataset.t = t;
+    btn.textContent = TEACHER_INFO[t].name;
+    btn.onclick = () => {
+      document.querySelectorAll('#teacher-tabs .sub-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#teacher-sections .section-card').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tch-'+t).classList.add('active');
+    };
+    tabsEl.appendChild(btn);
+
+    const pId    = 'tch-'+t;
+    const pTitle = `Teacher Schedule — ${TEACHER_INFO[t].name} — Wisdom Elementary`;
+    const initials = TEACHER_INFO[t].name.replace(/\./g,'').slice(0,2);
+
+    const sec = document.createElement('div');
+    sec.className = 'section-card' + (i===0 ? ' active' : '');
+    sec.id = pId;
+
+    sec.innerHTML = `
+      <div class="print-header">
+        <h2>Wisdom Elementary Public School</h2>
+        <p>Nishiganj, Coochbehar, West Bengal, 736157</p>
+        <p class="print-sub">Teacher Schedule — ${TEACHER_INFO[t].name}</p>
+      </div>
+      <div class="card-header hdr-${t}">
+        <div class="card-header-left">
+          <div class="card-initial">${initials}</div>
+          <div>
+            <h2>${TEACHER_INFO[t].name}</h2>
+            <p>${TEACHER_INFO[t].subjects}</p>
+          </div>
+        </div>
+        <button class="dl-btn no-print" onclick="downloadPDF('${pId}','${pTitle}')">
+          <svg viewBox="0 0 24 24"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v-2H5v2z"/></svg>
+          Download PDF
+        </button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead class="th-${t}">
+            <tr>
+              <th>Day</th>
+              ${periods.map(p => `<th>Period ${p}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody id="tb-tch-${t}"></tbody>
+        </table>
+      </div>
+      <div class="period-count no-print">
+        <span>📊 <strong>${total}</strong> / ${TOTAL_SCHOOL_SLOTS} school slots/week</span>
+        <span>🗓️ Occupied: <strong>${((total/TOTAL_SCHOOL_SLOTS)*100).toFixed(1)}%</strong></span>
+        ${DAYS.map((d,di) => dayCounts[di]>0 ? `<span>${d.slice(0,3)}: <strong>${dayCounts[di]}</strong></span>` : '').join('')}
+      </div>`;
+
+    secEl.appendChild(sec);
+
+    const tb = document.getElementById('tb-tch-'+t);
+    DAYS.forEach(day => {
+      const tr = document.createElement('tr');
+      let c = `<td><strong>${day}</strong><br><small style="color:#bbb;font-weight:400">${dayCounts[DAYS.indexOf(day)]} pd</small></td>`;
+      periods.forEach(p => {
+        const slot = sched[day][p];
+        if(slot){
+          const shKey = `${slot.cls}|${day}|${p}`;
+          // For own slots: sharedWith is SHARED[shKey] (the partner).
+          // For shared (partner) slots: the primary teacher is whoever is in timetable data.
+          let shWith = null;
+          if(!slot.isShared){
+            shWith = SHARED[shKey] || null;
+          } else {
+            // Find the primary teacher for this slot
+            const slotData = timetable[slot.cls]?.[day]?.[p];
+            if(slotData) shWith = slotData[1];
+          }
+          // Color key: use own teacher code; for shared-partner slots, still color by own teacher
+          c += `<td>${mkCell(slot.subj, t, CLASS_SHORT[slot.cls], false, shWith)}</td>`;
+        } else {
+          c += `<td>${freeCell()}</td>`;
+        }
+      });
+      tr.innerHTML = c;
+      tb.appendChild(tr);
+    });
+  });
+}
+
+/* ═══ INIT ═══════════════════════════════════════════════ */
+buildClassView();
+buildTeacherView();
+</script>
+</body>
+</html>
